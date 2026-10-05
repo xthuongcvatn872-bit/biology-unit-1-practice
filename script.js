@@ -66,7 +66,7 @@ const vocabList = [
 
 let currentIndex = 0;
 
-// Các phần tử DOM
+// Các phần tử chế độ học
 const currentNumberEl = document.getElementById("currentNumber");
 const slideImageEl = document.getElementById("slideImage");
 const audioSourceEl = document.getElementById("audioSource");
@@ -76,14 +76,11 @@ const videoPlayerEl = document.getElementById("videoPlayer");
 const prevBtn = document.getElementById("previousButton");
 const nextBtn = document.getElementById("nextButton");
 
-// Phần tử Trò chơi
-const lettersBox = document.getElementById("scrambledLetters");
-const scrambleInput = document.getElementById("scrambleInput");
-const scrambleFeedback = document.getElementById("scrambleFeedback");
-const quizDef = document.getElementById("quizDefinition");
-const quizOptions = document.getElementById("quizOptions");
-const quizFeedback = document.getElementById("quizFeedback");
+const miniLettersBox = document.getElementById("miniScrambleLetters");
+const miniInput = document.getElementById("miniInput");
+const miniFeedback = document.getElementById("miniFeedback");
 
+// Cập nhật chế độ học
 function updateContent(index) {
   const current = vocabList[index];
 
@@ -99,126 +96,222 @@ function updateContent(index) {
   prevBtn.disabled = index === 0;
   nextBtn.disabled = index === vocabList.length - 1;
 
-  // Cập nhật lại câu hỏi của 2 bài tập theo từ hiện tại
-  loadScrambleGame(current.word);
-  loadQuizGame(current);
+  loadMiniScramble(current.word);
 }
 
-// Chuyển Tab giữa 2 trò chơi
-window.switchTab = function(tabName) {
-  document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-  document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
-  
-  if (tabName === 'scramble') {
-    document.querySelectorAll(".tab-btn")[0].classList.add("active");
-    document.getElementById("scrambleGame").classList.add("active");
-  } else {
-    document.querySelectorAll(".tab-btn")[1].classList.add("active");
-    document.getElementById("quizGame").classList.add("active");
+// 1. MINI GAME XẾP CHỮ TẠI CHỖ
+function scrambleWord(word) {
+  const clean = word.replace(/\s+/g, '');
+  let arr = clean.split('').sort(() => 0.5 - Math.random());
+  if (arr.join('').toLowerCase() === clean.toLowerCase() && clean.length > 2) {
+    arr = clean.split('').reverse();
   }
-};
+  return arr;
+}
 
-// 1. Logic Game Xáo trộn từ
-function loadScrambleGame(word) {
-  scrambleInput.value = "";
-  scrambleFeedback.textContent = "";
-  scrambleFeedback.className = "feedback-msg";
+function loadMiniScramble(word) {
+  miniInput.value = "";
+  miniFeedback.textContent = "";
+  miniFeedback.className = "feedback-msg";
+  miniLettersBox.innerHTML = "";
 
-  // Tạo chuỗi xáo trộn
-  const cleanWord = word.replace(/\s+/g, '');
-  let shuffled = cleanWord.split('').sort(() => 0.5 - Math.random()).join('');
-  if (shuffled.toLowerCase() === cleanWord.toLowerCase() && cleanWord.length > 2) {
-    shuffled = cleanWord.split('').reverse().join('');
-  }
-
-  lettersBox.innerHTML = "";
-  shuffled.split('').forEach(char => {
+  scrambleWord(word).forEach(char => {
     const span = document.createElement("span");
     span.className = "letter-badge";
     span.textContent = char.toUpperCase();
-    lettersBox.appendChild(span);
+    miniLettersBox.appendChild(span);
   });
 }
 
-window.checkScramble = function() {
-  const userAns = scrambleInput.value.trim().toLowerCase().replace(/\s+/g, '');
+window.checkMiniScramble = function() {
+  const user = miniInput.value.trim().toLowerCase().replace(/\s+/g, '');
   const target = vocabList[currentIndex].word.toLowerCase().replace(/\s+/g, '');
 
-  if (userAns === target) {
-    scrambleFeedback.textContent = "🎉 Chính xác! Bạn đã nhớ chuẩn từ này!";
-    scrambleFeedback.className = "feedback-msg correct";
+  if (user === target) {
+    miniFeedback.textContent = "🎉 Rất giỏi! Bạn đã viết đúng!";
+    miniFeedback.className = "feedback-msg correct";
   } else {
-    scrambleFeedback.textContent = "❌ Chưa đúng rồi, thử lại nhé!";
-    scrambleFeedback.className = "feedback-msg wrong";
+    miniFeedback.textContent = "❌ Chưa chính xác, hãy thử lại!";
+    miniFeedback.className = "feedback-msg wrong";
   }
 };
 
-// Nhấn Enter để kiểm tra nhanh
-scrambleInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") checkScramble();
+miniInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") checkMiniScramble();
 });
 
-// 2. Logic Trắc nghiệm định nghĩa
-function loadQuizGame(current) {
-  quizDef.textContent = `"${current.definition}"`;
-  quizFeedback.textContent = "";
-  quizFeedback.className = "feedback-msg";
-  quizOptions.innerHTML = "";
+// Điều hướng từ
+prevBtn.addEventListener("click", () => {
+  if (currentIndex > 0) { currentIndex--; updateContent(currentIndex); }
+});
+nextBtn.addEventListener("click", () => {
+  if (currentIndex < vocabList.length - 1) { currentIndex++; updateContent(currentIndex); }
+});
 
-  // Tạo danh sách 4 lựa chọn (1 đúng, 3 sai)
+// ==========================================
+// 2. KHU VỰC BÀI KIỂM TRA TỔNG HỢP (RANDOM ORDER)
+// ==========================================
+let testType = 'scramble'; // 'scramble' hoặc 'quiz'
+let testList = [];
+let testIndex = 0;
+let testScore = 0;
+
+window.openTestSection = function() {
+  document.getElementById("learningSection").style.display = "none";
+  document.getElementById("testSection").style.display = "block";
+  startTest(testType);
+};
+
+window.backToLearning = function() {
+  document.getElementById("testSection").style.display = "none";
+  document.getElementById("learningSection").style.display = "block";
+};
+
+window.switchTestType = function(type) {
+  testType = type;
+  document.getElementById("tabTestScramble").classList.toggle("active", type === 'scramble');
+  document.getElementById("tabTestQuiz").classList.toggle("active", type === 'quiz');
+  startTest(type);
+};
+
+window.restartCurrentTest = function() {
+  startTest(testType);
+};
+
+function startTest(type) {
+  // XÁO TRỘN HOÀN TOÀN THỨ TỰ 9 TỪ
+  testList = [...vocabList].sort(() => 0.5 - Math.random());
+  testIndex = 0;
+  testScore = 0;
+
+  document.getElementById("scoreResultView").style.display = "none";
+
+  if (type === 'scramble') {
+    document.getElementById("testScrambleView").style.display = "block";
+    document.getElementById("testQuizView").style.display = "none";
+    loadNextScrambleQuestion();
+  } else {
+    document.getElementById("testScrambleView").style.display = "none";
+    document.getElementById("testQuizView").style.display = "block";
+    loadNextQuizQuestion();
+  }
+}
+
+// BÀI TEST 1: GIẢI MÃ TỪ
+function loadNextScrambleQuestion() {
+  const current = testList[testIndex];
+  document.getElementById("scrambleProgress").textContent = `${testIndex + 1} / ${testList.length}`;
+  const inputEl = document.getElementById("testScrambleInput");
+  inputEl.value = "";
+  inputEl.disabled = false;
+  document.getElementById("testScrambleFeedback").textContent = "";
+
+  const container = document.getElementById("testScrambleLetters");
+  container.innerHTML = "";
+  scrambleWord(current.word).forEach(c => {
+    const s = document.createElement("span");
+    s.className = "letter-badge";
+    s.textContent = c.toUpperCase();
+    container.appendChild(s);
+  });
+}
+
+window.submitTestScramble = function() {
+  const inputEl = document.getElementById("testScrambleInput");
+  const user = inputEl.value.trim().toLowerCase().replace(/\s+/g, '');
+  const target = testList[testIndex].word.toLowerCase().replace(/\s+/g, '');
+  const fb = document.getElementById("testScrambleFeedback");
+
+  inputEl.disabled = true;
+  if (user === target) {
+    testScore++;
+    fb.textContent = "✅ Chính xác!";
+    fb.className = "feedback-msg correct";
+  } else {
+    fb.textContent = `❌ Chưa đúng! Đáp án đúng là: ${testList[testIndex].word}`;
+    fb.className = "feedback-msg wrong";
+  }
+
+  setTimeout(() => {
+    testIndex++;
+    if (testIndex < testList.length) {
+      loadNextScrambleQuestion();
+    } else {
+      finishTest();
+    }
+  }, 1200);
+};
+
+document.getElementById("testScrambleInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") submitTestScramble();
+});
+
+// BÀI TEST 2: TRẮC NGHIỆM ĐỊNH NGHĨA
+function loadNextQuizQuestion() {
+  const current = testList[testIndex];
+  document.getElementById("quizProgress").textContent = `${testIndex + 1} / ${testList.length}`;
+  document.getElementById("testQuizQuestion").textContent = `"${current.definition}"`;
+  document.getElementById("testQuizFeedback").textContent = "";
+
+  const optionsContainer = document.getElementById("testQuizOptions");
+  optionsContainer.innerHTML = "";
+
+  // Tạo 4 lựa chọn (1 đúng, 3 sai)
   let choices = [current.word];
-  let others = vocabList.filter(item => item.word !== current.word).map(item => item.word);
+  let others = vocabList.filter(item => item.word !== current.word).map(i => i.word);
   others.sort(() => 0.5 - Math.random());
   choices.push(...others.slice(0, 3));
-  choices.sort(() => 0.5 - Math.random()); // Xáo trộn vị trí các đáp án
+  choices.sort(() => 0.5 - Math.random());
 
-  choices.forEach(optionText => {
+  choices.forEach(opt => {
     const btn = document.createElement("button");
     btn.className = "opt-btn";
-    btn.textContent = optionText;
+    btn.textContent = opt;
     btn.onclick = () => {
-      // Vô hiệu hóa nút sau khi bấm
       document.querySelectorAll(".opt-btn").forEach(b => b.disabled = true);
-      if (optionText === current.word) {
+      if (opt === current.word) {
+        testScore++;
         btn.classList.add("correct");
-        quizFeedback.textContent = "🌟 Tuyệt vời! Bạn hiểu đúng định nghĩa!";
-        quizFeedback.className = "feedback-msg correct";
+        document.getElementById("testQuizFeedback").textContent = "🌟 Chính xác!";
+        document.getElementById("testQuizFeedback").className = "feedback-msg correct";
       } else {
         btn.classList.add("wrong");
-        quizFeedback.textContent = `❌ Sai rồi! Thuật ngữ đúng phải là: ${current.word}`;
-        quizFeedback.className = "feedback-msg wrong";
-        // Đánh dấu nút đúng cho học sinh dễ thấy
+        document.getElementById("testQuizFeedback").textContent = `❌ Sai rồi! Đáp án: ${current.word}`;
+        document.getElementById("testQuizFeedback").className = "feedback-msg wrong";
         document.querySelectorAll(".opt-btn").forEach(b => {
           if (b.textContent === current.word) b.classList.add("correct");
         });
       }
+
+      setTimeout(() => {
+        testIndex++;
+        if (testIndex < testList.length) {
+          loadNextQuizQuestion();
+        } else {
+          finishTest();
+        }
+      }, 1300);
     };
-    quizOptions.appendChild(btn);
+    optionsContainer.appendChild(btn);
   });
 }
 
-// Bắt sự kiện chuyển từ
-prevBtn.addEventListener("click", () => {
-  if (currentIndex > 0) {
-    currentIndex--;
-    updateContent(currentIndex);
-  }
-});
+function finishTest() {
+  document.getElementById("testScrambleView").style.display = "none";
+  document.getElementById("testQuizView").style.display = "none";
+  const resultCard = document.getElementById("scoreResultView");
+  resultCard.style.display = "block";
 
-nextBtn.addEventListener("click", () => {
-  if (currentIndex < vocabList.length - 1) {
-    currentIndex++;
-    updateContent(currentIndex);
+  document.getElementById("finalScoreText").textContent = `${testScore} / ${testList.length}`;
+  const evalEl = document.getElementById("evaluationText");
+  if (testScore === testList.length) {
+    evalEl.textContent = "🏆 Hoàn hảo! Bạn đã nắm vững 100% thuật ngữ Unit 1!";
+  } else if (testScore >= 7) {
+    evalEl.textContent = "👏 Rất tốt! Bạn chỉ nhầm lẫn một chút thôi.";
+  } else {
+    evalEl.textContent = "💪 Hãy ôn tập lại các slide và thử lại nhé!";
   }
-});
+}
 
-// Điều khiển phím mũi tên bàn phím
-document.addEventListener("keydown", (e) => {
-  if (e.target.tagName !== "INPUT") {
-    if (e.key === "ArrowRight") nextBtn.click();
-    if (e.key === "ArrowLeft") prevBtn.click();
-  }
-});
-
-// Khởi chạy ngay từ vựng số 1
+// Khởi chạy
 updateContent(0);
