@@ -93,16 +93,9 @@
         <div id="testScrambleLetters" class="letters-box"></div>
         <div class="answer-row">
           <input type="text" id="testScrambleInput" placeholder="Nhập đáp án..." autocomplete="off">
-          <button id="testScrambleCheckBtn" type="button" class="btn btn-check" onclick="submitTestScramble()">Trả lời</button>
+          <button id="testScrambleActionBtn" type="button" class="btn btn-check" onclick="handleScrambleAction()">Trả lời</button>
         </div>
         <p id="testScrambleFeedback" class="feedback-msg"></p>
-        
-        <!-- Nút chuyển câu Game 1 -->
-        <div style="margin-top: 15px;">
-          <button id="scrambleNextBtn" type="button" class="btn btn-next" style="display: none;" onclick="goToNextScrambleQuestion()">
-            Câu tiếp theo ▶
-          </button>
-        </div>
       </div>
 
       <!-- Khung làm Test Game 2 (Trắc nghiệm định nghĩa) -->
@@ -114,7 +107,7 @@
         
         <!-- Nút chuyển câu Game 2 -->
         <div style="margin-top: 15px;">
-          <button id="quizNextBtn" type="button" class="btn btn-next" style="display: none;" onclick="goToNextQuizQuestion()">
+          <button id="quizNextBtn" type="button" class="btn btn-test-entry" style="display: none;" onclick="goToNextQuizQuestion()">
             Câu tiếp theo ▶
           </button>
         </div>
