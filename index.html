@@ -32,6 +32,7 @@
           </div>
           <audio id="audioPlayer" controls preload="metadata">
             <source id="audioSource" src="001_DNA.mp3" type="audio/mpeg">
+            Trình duyệt không hỗ trợ phát âm thanh.
           </audio>
         </section>
 
@@ -43,13 +44,14 @@
           <div class="video-container">
             <video id="videoPlayer" controls playsinline preload="metadata">
               <source id="videoSource" src="001_DNA.mp4" type="video/mp4">
+              Trình duyệt không hỗ trợ phát video.
             </video>
           </div>
         </section>
       </div>
 
       <!-- Điều hướng từ -->
-      <nav class="nav-controls">
+      <nav class="nav-controls" aria-label="Điều hướng từ vựng">
         <button id="previousButton" type="button" class="btn btn-prev">◀ Previous</button>
         <button id="nextButton" type="button" class="btn btn-next">Next ▶</button>
       </nav>
@@ -60,48 +62,62 @@
         <div id="miniScrambleLetters" class="letters-box"></div>
         <div class="answer-row">
           <input type="text" id="miniInput" placeholder="Gõ từ hoàn chỉnh..." autocomplete="off">
-          <button class="btn btn-check" onclick="checkMiniScramble()">Kiểm tra</button>
+          <button type="button" class="btn btn-check" onclick="checkMiniScramble()">Kiểm tra</button>
         </div>
         <p id="miniFeedback" class="feedback-msg"></p>
       </section>
 
       <!-- Nút chuyển sang Bài kiểm tra tổng hợp -->
       <div class="test-entry-box">
-        <button id="startTestBtn" class="btn btn-test-entry" onclick="openTestSection()">
+        <button id="startTestBtn" type="button" class="btn btn-test-entry" onclick="openTestSection()">
           🚀 Đi đến Bài kiểm tra tổng hợp Unit 1 (9 từ)
         </button>
       </div>
     </div>
 
-    <!-- KHU VỰC 2: BÀI KIỂM TRA ĐÁNH GIÁ TỔNG HỢP (Ẩn ban đầu) -->
+    <!-- KHU VỰC 2: BÀI KIỂM TRA ĐÁNH GIÁ TỔNG HỢP -->
     <div id="testSection" style="display: none;">
       <div class="test-header">
         <h2>🏆 Bài kiểm tra tổng hợp Unit 1</h2>
         <p>Thứ tự các thuật ngữ đã được đảo ngẫu nhiên để thử thách trí nhớ của bạn!</p>
         <div class="test-tab-nav">
-          <button id="tabTestScramble" class="tab-btn active" onclick="switchTestType('scramble')">Game 1: Giải mã 9 từ xáo trộn</button>
-          <button id="tabTestQuiz" class="tab-btn" onclick="switchTestType('quiz')">Game 2: Trắc nghiệm 9 định nghĩa</button>
+          <button id="tabTestScramble" type="button" class="tab-btn active" onclick="switchTestType('scramble')">Game 1: Giải mã 9 từ xáo trộn</button>
+          <button id="tabTestQuiz" type="button" class="tab-btn" onclick="switchTestType('quiz')">Game 2: Trắc nghiệm 9 định nghĩa</button>
         </div>
       </div>
 
       <!-- Khung làm Test Game 1 (Xáo trộn) -->
       <div id="testScrambleView" class="test-box">
-        <div class="test-progress">Câu hỏi: <span id="scrambleProgress">1/9</span></div>
+        <div class="test-progress">Câu hỏi: <span id="scrambleProgress">1 / 9</span></div>
         <p class="instruction">Hãy sắp xếp các chữ cái sau thành thuật ngữ đúng:</p>
         <div id="testScrambleLetters" class="letters-box"></div>
         <div class="answer-row">
           <input type="text" id="testScrambleInput" placeholder="Nhập đáp án..." autocomplete="off">
-          <button class="btn btn-check" onclick="submitTestScramble()">Trả lời</button>
+          <button id="testScrambleCheckBtn" type="button" class="btn btn-check" onclick="submitTestScramble()">Trả lời</button>
         </div>
         <p id="testScrambleFeedback" class="feedback-msg"></p>
+        
+        <!-- Nút chuyển câu Game 1 -->
+        <div style="margin-top: 15px;">
+          <button id="scrambleNextBtn" type="button" class="btn btn-next" style="display: none;" onclick="goToNextScrambleQuestion()">
+            Câu tiếp theo ▶
+          </button>
+        </div>
       </div>
 
       <!-- Khung làm Test Game 2 (Trắc nghiệm định nghĩa) -->
       <div id="testQuizView" class="test-box" style="display: none;">
-        <div class="test-progress">Câu hỏi: <span id="quizProgress">1/9</span></div>
-        <div id="testQuizQuestion" class="quiz-def-box">Định nghĩa hiển thị ở đây...</div>
+        <div class="test-progress">Câu hỏi: <span id="quizProgress">1 / 9</span></div>
+        <div id="testQuizQuestion" class="quiz-def-box">Đang tải định nghĩa...</div>
         <div id="testQuizOptions" class="options-grid"></div>
         <p id="testQuizFeedback" class="feedback-msg"></p>
+        
+        <!-- Nút chuyển câu Game 2 -->
+        <div style="margin-top: 15px;">
+          <button id="quizNextBtn" type="button" class="btn btn-next" style="display: none;" onclick="goToNextQuizQuestion()">
+            Câu tiếp theo ▶
+          </button>
+        </div>
       </div>
 
       <!-- Khung bảng điểm sau khi hoàn thành -->
@@ -110,13 +126,13 @@
         <p class="final-score" id="finalScoreText">9 / 9</p>
         <p id="evaluationText">Rất xuất sắc!</p>
         <div class="score-actions">
-          <button class="btn btn-next" onclick="restartCurrentTest()">🔄 Làm lại bài này</button>
-          <button class="btn btn-prev" onclick="backToLearning()">⬅ Quay lại ôn bài</button>
+          <button type="button" class="btn btn-next" onclick="restartCurrentTest()">🔄 Làm lại bài này</button>
+          <button type="button" class="btn btn-prev" onclick="backToLearning()">⬅ Quay lại ôn bài</button>
         </div>
       </div>
 
       <div class="back-wrap">
-        <button class="btn btn-prev" onclick="backToLearning()">⬅ Thoát bài kiểm tra / Về trang ôn tập</button>
+        <button type="button" class="btn btn-prev" onclick="backToLearning()">⬅ Thoát bài kiểm tra / Về trang ôn tập</button>
       </div>
     </div>
 
@@ -125,6 +141,6 @@
     </footer>
   </div>
 
- <script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
