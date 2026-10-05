@@ -70,6 +70,45 @@ let testList = [];
 let testIndex = 0;
 let testScore = 0;
 
+// ==========================================
+// BỘ TẠO ÂM THANH BẰNG WEB AUDIO API
+// ==========================================
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playTone(freq, type, duration, delay = 0) {
+  setTimeout(() => {
+    try {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    } catch(e) {}
+  }, delay);
+}
+
+// Âm đúng: Hợp âm vui tươi (Đô - Mi - Sol cao)
+function playCorrectSound() {
+  playTone(523.25, 'sine', 0.15, 0);   // C5
+  playTone(659.25, 'sine', 0.15, 80);  // E5
+  playTone(783.99, 'sine', 0.25, 160); // G5
+}
+
+// Âm sai: Hai nốt trầm đục cảnh báo
+function playWrongSound() {
+  playTone(220, 'triangle', 0.2, 0);   // A3
+  playTone(180, 'sawtooth', 0.25, 120); // F3
+}
+
+// ==========================================
+// XỬ LÝ CHỮ CÁI XÁO TRỘN
+// ==========================================
 function scrambleWord(word) {
   const clean = word.replace(/\s+/g, '');
   let arr = clean.split('');
@@ -81,6 +120,9 @@ function scrambleWord(word) {
   return shuffled;
 }
 
+// ==========================================
+// KHU VỰC HỌC TẬP TỪNG TỪ
+// ==========================================
 function updateContent(index) {
   currentIndex = index;
   const current = vocabList[index];
@@ -110,7 +152,7 @@ function updateContent(index) {
   if (prevBtn) prevBtn.disabled = (index === 0);
   if (nextBtn) nextBtn.disabled = (index === vocabList.length - 1);
 
-  // Cập nhật game nhỏ xáo trộn chữ
+  // Cập nhật mini game tại chỗ
   const miniInput = document.getElementById("miniInput");
   const miniFeedback = document.getElementById("miniFeedback");
   const miniLettersBox = document.getElementById("miniScrambleLetters");
@@ -132,7 +174,7 @@ function updateContent(index) {
   }
 }
 
-// Hàm kiểm tra từ nhỏ tại chỗ (gắn trực tiếp vào window)
+// Kiểm tra mini game tại chỗ
 window.checkMiniScramble = function() {
   const miniInput = document.getElementById("miniInput");
   const miniFeedback = document.getElementById("miniFeedback");
@@ -142,50 +184,43 @@ window.checkMiniScramble = function() {
   const target = vocabList[currentIndex].word.toLowerCase().replace(/\s+/g, '');
 
   if (user === target) {
+    playCorrectSound();
     miniFeedback.textContent = "🎉 Rất giỏi! Bạn đã viết đúng!";
     miniFeedback.className = "feedback-msg correct";
   } else {
+    playWrongSound();
     miniFeedback.textContent = "❌ Chưa chính xác, hãy thử lại!";
     miniFeedback.className = "feedback-msg wrong";
   }
 };
 
-// Gán sự kiện chuyển bài
 function initEvents() {
   const prevBtn = document.getElementById("previousButton");
   const nextBtn = document.getElementById("nextButton");
   const miniInput = document.getElementById("miniInput");
 
   if (prevBtn) {
-    prevBtn.onclick = function() {
-      if (currentIndex > 0) updateContent(currentIndex - 1);
-    };
+    prevBtn.onclick = () => { if (currentIndex > 0) updateContent(currentIndex - 1); };
   }
-
   if (nextBtn) {
-    nextBtn.onclick = function() {
-      if (currentIndex < vocabList.length - 1) updateContent(currentIndex + 1);
-    };
+    nextBtn.onclick = () => { if (currentIndex < vocabList.length - 1) updateContent(currentIndex + 1); };
   }
-
   if (miniInput) {
-    miniInput.onkeydown = function(e) {
-      if (e.key === "Enter") window.checkMiniScramble();
-    };
+    miniInput.onkeydown = (e) => { if (e.key === "Enter") window.checkMiniScramble(); };
   }
 
-  // Tải từ đầu tiên
   updateContent(0);
 }
 
-// Chạy khởi tạo ngay
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initEvents);
 } else {
   initEvents();
 }
 
-// BÀI TEST TỔNG HỢP
+// ==========================================
+// KHU VỰC BÀI THI TỔNG HỢP
+// ==========================================
 window.openTestSection = function() {
   document.getElementById("learningSection").style.display = "none";
   document.getElementById("testSection").style.display = "block";
@@ -229,16 +264,21 @@ function startTest(type) {
   }
 }
 
+// --- GAME 1: XÁO TRỘN TỪ ---
 function loadNextScrambleQuestion() {
   const current = testList[testIndex];
   document.getElementById("scrambleProgress").textContent = `${testIndex + 1} / ${testList.length}`;
   const inputEl = document.getElementById("testScrambleInput");
   const fb = document.getElementById("testScrambleFeedback");
+  const checkBtn = document.getElementById("testScrambleCheckBtn");
+  const nextBtn = document.getElementById("scrambleNextBtn");
 
   if (inputEl) {
     inputEl.value = "";
     inputEl.disabled = false;
   }
+  if (checkBtn) checkBtn.disabled = false;
+  if (nextBtn) nextBtn.style.display = "none";
   if (fb) fb.textContent = "";
 
   const container = document.getElementById("testScrambleLetters");
@@ -256,36 +296,62 @@ function loadNextScrambleQuestion() {
 window.submitTestScramble = function() {
   const inputEl = document.getElementById("testScrambleInput");
   const fb = document.getElementById("testScrambleFeedback");
+  const checkBtn = document.getElementById("testScrambleCheckBtn");
+  const nextBtn = document.getElementById("scrambleNextBtn");
   if (!inputEl || !fb) return;
 
   const user = inputEl.value.trim().toLowerCase().replace(/\s+/g, '');
   const target = testList[testIndex].word.toLowerCase().replace(/\s+/g, '');
 
   inputEl.disabled = true;
+  if (checkBtn) checkBtn.disabled = true;
+
   if (user === target) {
     testScore++;
+    playCorrectSound();
     fb.textContent = "✅ Chính xác!";
     fb.className = "feedback-msg correct";
   } else {
+    playWrongSound();
     fb.textContent = `❌ Chưa đúng! Đáp án: ${testList[testIndex].word}`;
     fb.className = "feedback-msg wrong";
   }
 
-  setTimeout(() => {
-    testIndex++;
-    if (testIndex < testList.length) {
-      loadNextScrambleQuestion();
-    } else {
-      finishTest();
-    }
-  }, 1200);
+  // Hiện nút chuyển câu
+  if (nextBtn) nextBtn.style.display = "inline-block";
 };
 
+window.goToNextScrambleQuestion = function() {
+  testIndex++;
+  if (testIndex < testList.length) {
+    loadNextScrambleQuestion();
+  } else {
+    finishTest();
+  }
+};
+
+// Cho phép bấm Enter để nộp hoặc chuyển câu
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && document.getElementById("testSection").style.display === "block") {
+    const nextBtn1 = document.getElementById("scrambleNextBtn");
+    const nextBtn2 = document.getElementById("quizNextBtn");
+    if (nextBtn1 && nextBtn1.style.display !== "none") {
+      goToNextScrambleQuestion();
+    } else if (nextBtn2 && nextBtn2.style.display !== "none") {
+      goToNextQuizQuestion();
+    }
+  }
+});
+
+// --- GAME 2: TRẮC NGHIỆM ĐỊNH NGHĨA ---
 function loadNextQuizQuestion() {
   const current = testList[testIndex];
   document.getElementById("quizProgress").textContent = `${testIndex + 1} / ${testList.length}`;
   document.getElementById("testQuizQuestion").textContent = `"${current.definition}"`;
   document.getElementById("testQuizFeedback").textContent = "";
+
+  const nextBtn = document.getElementById("quizNextBtn");
+  if (nextBtn) nextBtn.style.display = "none";
 
   const optionsContainer = document.getElementById("testQuizOptions");
   if (!optionsContainer) return;
@@ -304,17 +370,20 @@ function loadNextQuizQuestion() {
     btn.onclick = () => {
       document.querySelectorAll(".opt-btn").forEach(b => b.disabled = true);
       const quizFb = document.getElementById("testQuizFeedback");
+      
       if (opt === current.word) {
         testScore++;
+        playCorrectSound();
         btn.classList.add("correct");
         if (quizFb) {
           quizFb.textContent = "🌟 Chính xác!";
           quizFb.className = "feedback-msg correct";
         }
       } else {
+        playWrongSound();
         btn.classList.add("wrong");
         if (quizFb) {
-          quizFb.textContent = `❌ Sai rồi! Đáp án: ${current.word}`;
+          quizFb.textContent = `❌ Sai rồi! Đáp án đúng: ${current.word}`;
           quizFb.className = "feedback-msg wrong";
         }
         document.querySelectorAll(".opt-btn").forEach(b => {
@@ -322,18 +391,21 @@ function loadNextQuizQuestion() {
         });
       }
 
-      setTimeout(() => {
-        testIndex++;
-        if (testIndex < testList.length) {
-          loadNextQuizQuestion();
-        } else {
-          finishTest();
-        }
-      }, 1300);
+      // Hiện nút chuyển câu
+      if (nextBtn) nextBtn.style.display = "inline-block";
     };
     optionsContainer.appendChild(btn);
   });
 }
+
+window.goToNextQuizQuestion = function() {
+  testIndex++;
+  if (testIndex < testList.length) {
+    loadNextQuizQuestion();
+  } else {
+    finishTest();
+  }
+};
 
 function finishTest() {
   document.getElementById("testScrambleView").style.display = "none";
