@@ -3,24 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Unit 1: DNA & Replication - Practice & Quiz</title>
+  <title>Unit 1: DNA & Replication - Learning & Test</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="card">
     <header class="app-header">
       <span class="badge">Unit 1 - DNA and DNA replication</span>
-      <h1>Biology Interactive Learning & Quiz</h1>
-      <p class="subtitle">Học liệu số & Bài tập tương tác thuật ngữ Sinh học</p>
+      <h1>Biology Interactive Learning</h1>
+      <p class="subtitle">Học liệu số & Kiểm tra đánh giá thuật ngữ Sinh học</p>
     </header>
 
-    <!-- Bộ đếm bài học -->
-    <div class="counter-wrap">
-      <span class="counter-badge"><strong id="currentNumber">1</strong> / 9</span>
-    </div>
+    <!-- KHU VỰC 1: HỌC TẬP TỪNG TỪ -->
+    <div id="learningSection">
+      <div class="counter-wrap">
+        <span class="counter-badge"><strong id="currentNumber">1</strong> / 9</span>
+      </div>
 
-    <main class="main-content">
-      <!-- KHUNG BÀI HỌC CHÍNH (2 CỘT) -->
+      <!-- 2 Cột: Slide + Audio & Video -->
       <div class="media-grid">
         <section class="media-card left-card">
           <div class="slide-frame">
@@ -48,39 +48,77 @@
         </section>
       </div>
 
-      <!-- ĐIỀU HƯỚNG TỪ VỰNG -->
+      <!-- Điều hướng từ -->
       <nav class="nav-controls">
         <button id="previousButton" type="button" class="btn btn-prev">◀ Previous</button>
         <button id="nextButton" type="button" class="btn btn-next">Next ▶</button>
       </nav>
 
-      <!-- KHU VỰC BÀI TẬP TƯƠNG TÁC (INTERACTIVE PRACTICE) -->
-      <section class="practice-container">
-        <div class="tab-header">
-          <button class="tab-btn active" onclick="switchTab('scramble')">🎮 Game: Sắp xếp từ</button>
-          <button class="tab-btn" onclick="switchTab('quiz')">📝 Trắc nghiệm định nghĩa</button>
+      <!-- Mini-game luyện tập tại chỗ của từ hiện tại -->
+      <section class="micro-practice">
+        <h4>✏️ Luyện nhớ từ này: Sắp xếp lại các chữ cái</h4>
+        <div id="miniScrambleLetters" class="letters-box"></div>
+        <div class="answer-row">
+          <input type="text" id="miniInput" placeholder="Gõ từ hoàn chỉnh..." autocomplete="off">
+          <button class="btn btn-check" onclick="checkMiniScramble()">Kiểm tra</button>
         </div>
-
-        <!-- DẠNG 1: TỪ XÁO TRỘN (WORD SCRAMBLE) -->
-        <div id="scrambleGame" class="tab-content active">
-          <p class="game-instruction">Sắp xếp các chữ cái sau thành thuật ngữ Sinh học đúng với từ hiện tại:</p>
-          <div id="scrambledLetters" class="letters-box"></div>
-          <div class="answer-row">
-            <input type="text" id="scrambleInput" placeholder="Nhập từ vựng viết đúng..." autocomplete="off">
-            <button id="checkScrambleBtn" class="btn btn-check" onclick="checkScramble()">Kiểm tra</button>
-          </div>
-          <p id="scrambleFeedback" class="feedback-msg"></p>
-        </div>
-
-        <!-- DẠNG 2: TRẮC NGHIỆM ĐỊNH NGHĨA (MULTIPLE CHOICE) -->
-        <div id="quizGame" class="tab-content">
-          <p class="quiz-question-tag">Định nghĩa thuật ngữ:</p>
-          <div id="quizDefinition" class="quiz-def-box">Đang tải câu hỏi...</div>
-          <div id="quizOptions" class="options-grid"></div>
-          <p id="quizFeedback" class="feedback-msg"></p>
-        </div>
+        <p id="miniFeedback" class="feedback-msg"></p>
       </section>
-    </main>
+
+      <!-- Nút chuyển sang Bài kiểm tra tổng hợp -->
+      <div class="test-entry-box">
+        <button id="startTestBtn" class="btn btn-test-entry" onclick="openTestSection()">
+          🚀 Đi đến Bài kiểm tra tổng hợp Unit 1 (9 từ)
+        </button>
+      </div>
+    </div>
+
+    <!-- KHU VỰC 2: BÀI KIỂM TRA ĐÁNH GIÁ TỔNG HỢP (Ẩn ban đầu) -->
+    <div id="testSection" style="display: none;">
+      <div class="test-header">
+        <h2>🏆 Bài kiểm tra tổng hợp Unit 1</h2>
+        <p>Thứ tự các thuật ngữ đã được đảo ngẫu nhiên để thử thách trí nhớ của bạn!</p>
+        <div class="test-tab-nav">
+          <button id="tabTestScramble" class="tab-btn active" onclick="switchTestType('scramble')">Game 1: Giải mã 9 từ xáo trộn</button>
+          <button id="tabTestQuiz" class="tab-btn" onclick="switchTestType('quiz')">Game 2: Trắc nghiệm 9 định nghĩa</button>
+        </div>
+      </div>
+
+      <!-- Khung làm Test Game 1 (Xáo trộn) -->
+      <div id="testScrambleView" class="test-box">
+        <div class="test-progress">Câu hỏi: <span id="scrambleProgress">1/9</span></div>
+        <p class="instruction">Hãy sắp xếp các chữ cái sau thành thuật ngữ đúng:</p>
+        <div id="testScrambleLetters" class="letters-box"></div>
+        <div class="answer-row">
+          <input type="text" id="testScrambleInput" placeholder="Nhập đáp án..." autocomplete="off">
+          <button class="btn btn-check" onclick="submitTestScramble()">Trả lời</button>
+        </div>
+        <p id="testScrambleFeedback" class="feedback-msg"></p>
+      </div>
+
+      <!-- Khung làm Test Game 2 (Trắc nghiệm định nghĩa) -->
+      <div id="testQuizView" class="test-box" style="display: none;">
+        <div class="test-progress">Câu hỏi: <span id="quizProgress">1/9</span></div>
+        <div id="testQuizQuestion" class="quiz-def-box">Định nghĩa hiển thị ở đây...</div>
+        <div id="testQuizOptions" class="options-grid"></div>
+        <p id="testQuizFeedback" class="feedback-msg"></p>
+      </div>
+
+      <!-- Khung bảng điểm sau khi hoàn thành -->
+      <div id="scoreResultView" class="score-card" style="display: none;">
+        <h3>🎉 KẾT QUẢ BÀI THI</h3>
+        <p class="final-score" id="finalScoreText">9 / 9</p>
+        <p id="evaluationText">Rất xuất sắc!</p>
+        <div class="score-actions">
+          <button class="btn btn-next" onclick="restartCurrentTest()">🔄 Làm lại bài này</button>
+          <button class="btn btn-prev" onclick="backToLearning()">⬅ Quay lại ôn bài</button>
+        </div>
+      </div>
+
+      <div class="back-wrap">
+        <button class="btn btn-prev" onclick="backToLearning()">⬅ Thoát bài kiểm tra / Về trang ôn tập</button>
+      </div>
+    </div>
 
     <footer class="app-footer">
       <p>Biology Digital Learning Material &bull; THPT Chu Văn An - Thái Nguyên</p>
