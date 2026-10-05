@@ -70,12 +70,10 @@ let testList = [];
 let testIndex = 0;
 let testScore = 0;
 
-// Hàm xáo trộn chữ cái
 function scrambleWord(word) {
   const clean = word.replace(/\s+/g, '');
   let arr = clean.split('');
   if (arr.length <= 1) return arr;
-  
   let shuffled = [...arr].sort(() => 0.5 - Math.random());
   if (shuffled.join('').toLowerCase() === clean.toLowerCase()) {
     shuffled = arr.reverse();
@@ -83,8 +81,10 @@ function scrambleWord(word) {
   return shuffled;
 }
 
-// Chờ HTML tải hoàn tất mới gán sự kiện để tránh nghẽn lệnh
-document.addEventListener("DOMContentLoaded", () => {
+function updateContent(index) {
+  currentIndex = index;
+  const current = vocabList[index];
+
   const currentNumberEl = document.getElementById("currentNumber");
   const slideImageEl = document.getElementById("slideImage");
   const audioSourceEl = document.getElementById("audioSource");
@@ -94,106 +94,98 @@ document.addEventListener("DOMContentLoaded", () => {
   const prevBtn = document.getElementById("previousButton");
   const nextBtn = document.getElementById("nextButton");
 
-  const miniLettersBox = document.getElementById("miniScrambleLetters");
+  if (currentNumberEl) currentNumberEl.textContent = index + 1;
+  if (slideImageEl) slideImageEl.src = current.image;
+
+  if (audioSourceEl && audioPlayerEl) {
+    audioSourceEl.src = current.audio;
+    audioPlayerEl.load();
+  }
+
+  if (videoSourceEl && videoPlayerEl) {
+    videoSourceEl.src = current.video;
+    videoPlayerEl.load();
+  }
+
+  if (prevBtn) prevBtn.disabled = (index === 0);
+  if (nextBtn) nextBtn.disabled = (index === vocabList.length - 1);
+
+  // Cập nhật game nhỏ xáo trộn chữ
   const miniInput = document.getElementById("miniInput");
   const miniFeedback = document.getElementById("miniFeedback");
-  const miniCheckBtn = document.querySelector(".micro-practice .btn-check");
+  const miniLettersBox = document.getElementById("miniScrambleLetters");
 
-  function updateLearning(index) {
-    const current = vocabList[index];
-
-    if (currentNumberEl) currentNumberEl.textContent = index + 1;
-    if (slideImageEl) slideImageEl.src = current.image;
-
-    if (audioSourceEl && audioPlayerEl) {
-      audioSourceEl.src = current.audio;
-      audioPlayerEl.load();
-    }
-
-    if (videoSourceEl && videoPlayerEl) {
-      videoSourceEl.src = current.video;
-      videoPlayerEl.load();
-    }
-
-    if (prevBtn) prevBtn.disabled = (index === 0);
-    if (nextBtn) nextBtn.disabled = (index === vocabList.length - 1);
-
-    // Tải phần xáo trộn chữ của từ này
-    if (miniInput) miniInput.value = "";
-    if (miniFeedback) {
-      miniFeedback.textContent = "";
-      miniFeedback.className = "feedback-msg";
-    }
-    if (miniLettersBox) {
-      miniLettersBox.innerHTML = "";
-      const chars = scrambleWord(current.word);
-      chars.forEach(char => {
-        const span = document.createElement("span");
-        span.className = "letter-badge";
-        span.textContent = char.toUpperCase();
-        miniLettersBox.appendChild(span);
-      });
-    }
+  if (miniInput) miniInput.value = "";
+  if (miniFeedback) {
+    miniFeedback.textContent = "";
+    miniFeedback.className = "feedback-msg";
   }
 
-  // Sự kiện kiểm tra mini game
-  function verifyMini() {
-    if (!miniInput || !miniFeedback) return;
-    const userVal = miniInput.value.trim().toLowerCase().replace(/\s+/g, '');
-    const correctVal = vocabList[currentIndex].word.toLowerCase().replace(/\s+/g, '');
-
-    if (userVal === correctVal) {
-      miniFeedback.textContent = "🎉 Rất giỏi! Bạn đã viết đúng!";
-      miniFeedback.className = "feedback-msg correct";
-    } else {
-      miniFeedback.textContent = "❌ Chưa chính xác, hãy thử lại!";
-      miniFeedback.className = "feedback-msg wrong";
-    }
-  }
-
-  if (miniCheckBtn) {
-    miniCheckBtn.addEventListener("click", verifyMini);
-  }
-
-  if (miniInput) {
-    miniInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") verifyMini();
+  if (miniLettersBox) {
+    miniLettersBox.innerHTML = "";
+    scrambleWord(current.word).forEach(char => {
+      const span = document.createElement("span");
+      span.className = "letter-badge";
+      span.textContent = char.toUpperCase();
+      miniLettersBox.appendChild(span);
     });
   }
+}
 
-  // Điều hướng từ vựng
+// Hàm kiểm tra từ nhỏ tại chỗ (gắn trực tiếp vào window)
+window.checkMiniScramble = function() {
+  const miniInput = document.getElementById("miniInput");
+  const miniFeedback = document.getElementById("miniFeedback");
+  if (!miniInput || !miniFeedback) return;
+
+  const user = miniInput.value.trim().toLowerCase().replace(/\s+/g, '');
+  const target = vocabList[currentIndex].word.toLowerCase().replace(/\s+/g, '');
+
+  if (user === target) {
+    miniFeedback.textContent = "🎉 Rất giỏi! Bạn đã viết đúng!";
+    miniFeedback.className = "feedback-msg correct";
+  } else {
+    miniFeedback.textContent = "❌ Chưa chính xác, hãy thử lại!";
+    miniFeedback.className = "feedback-msg wrong";
+  }
+};
+
+// Gán sự kiện chuyển bài
+function initEvents() {
+  const prevBtn = document.getElementById("previousButton");
+  const nextBtn = document.getElementById("nextButton");
+  const miniInput = document.getElementById("miniInput");
+
   if (prevBtn) {
-    prevBtn.addEventListener("click", () => {
-      if (currentIndex > 0) {
-        currentIndex--;
-        updateLearning(currentIndex);
-      }
-    });
+    prevBtn.onclick = function() {
+      if (currentIndex > 0) updateContent(currentIndex - 1);
+    };
   }
 
   if (nextBtn) {
-    nextBtn.addEventListener("click", () => {
-      if (currentIndex < vocabList.length - 1) {
-        currentIndex++;
-        updateLearning(currentIndex);
-      }
-    });
+    nextBtn.onclick = function() {
+      if (currentIndex < vocabList.length - 1) updateContent(currentIndex + 1);
+    };
   }
 
-  // Điều hướng bằng phím mũi tên
-  document.addEventListener("keydown", (e) => {
-    if (document.activeElement.tagName === "INPUT") return;
-    if (e.key === "ArrowRight" && nextBtn && !nextBtn.disabled) nextBtn.click();
-    if (e.key === "ArrowLeft" && prevBtn && !prevBtn.disabled) prevBtn.click();
-  });
+  if (miniInput) {
+    miniInput.onkeydown = function(e) {
+      if (e.key === "Enter") window.checkMiniScramble();
+    };
+  }
 
   // Tải từ đầu tiên
-  updateLearning(0);
-});
+  updateContent(0);
+}
 
-// ==========================================
-// CÁC HÀM BÀI THI TỔNG HỢP (GẮN GLOBAL CHO NÚT BẤM)
-// ==========================================
+// Chạy khởi tạo ngay
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initEvents);
+} else {
+  initEvents();
+}
+
+// BÀI TEST TỔNG HỢP
 window.openTestSection = function() {
   document.getElementById("learningSection").style.display = "none";
   document.getElementById("testSection").style.display = "block";
@@ -242,7 +234,7 @@ function loadNextScrambleQuestion() {
   document.getElementById("scrambleProgress").textContent = `${testIndex + 1} / ${testList.length}`;
   const inputEl = document.getElementById("testScrambleInput");
   const fb = document.getElementById("testScrambleFeedback");
-  
+
   if (inputEl) {
     inputEl.value = "";
     inputEl.disabled = false;
@@ -351,7 +343,7 @@ function finishTest() {
 
   const scoreText = document.getElementById("finalScoreText");
   if (scoreText) scoreText.textContent = `${testScore} / ${testList.length}`;
-  
+
   const evalEl = document.getElementById("evaluationText");
   if (evalEl) {
     if (testScore === testList.length) {
