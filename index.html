@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unit 1: DNA & Replication - Practice & Quiz</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="card">
+    <header class="app-header">
+      <span class="badge">Unit 1 - DNA and DNA replication</span>
+      <h1>Biology Interactive Learning & Quiz</h1>
+      <p class="subtitle">Học liệu số & Bài tập tương tác thuật ngữ Sinh học</p>
+    </header>
+
+    <!-- Bộ đếm bài học -->
+    <div class="counter-wrap">
+      <span class="counter-badge"><strong id="currentNumber">1</strong> / 9</span>
+    </div>
+
+    <main class="main-content">
+      <!-- KHUNG BÀI HỌC CHÍNH (2 CỘT) -->
+      <div class="media-grid">
+        <section class="media-card left-card">
+          <div class="slide-frame">
+            <img id="slideImage" src="001_DNA.png" alt="Biology Slide">
+          </div>
+          <div class="media-title">
+            <span class="icon">📢</span>
+            <h3>Listen & Repeat</h3>
+          </div>
+          <audio id="audioPlayer" controls preload="metadata">
+            <source id="audioSource" src="001_DNA.mp3" type="audio/mpeg">
+          </audio>
+        </section>
+
+        <section class="media-card right-card">
+          <div class="media-title">
+            <span class="icon">🎥</span>
+            <h3>Teacher's Guide</h3>
+          </div>
+          <div class="video-container">
+            <video id="videoPlayer" controls playsinline preload="metadata">
+              <source id="videoSource" src="001_DNA.mp4" type="video/mp4">
+            </video>
+          </div>
+        </section>
+      </div>
+
+      <!-- ĐIỀU HƯỚNG TỪ VỰNG -->
+      <nav class="nav-controls">
+        <button id="previousButton" type="button" class="btn btn-prev">◀ Previous</button>
+        <button id="nextButton" type="button" class="btn btn-next">Next ▶</button>
+      </nav>
+
+      <!-- KHU VỰC BÀI TẬP TƯƠNG TÁC (INTERACTIVE PRACTICE) -->
+      <section class="practice-container">
+        <div class="tab-header">
+          <button class="tab-btn active" onclick="switchTab('scramble')">🎮 Game: Sắp xếp từ</button>
+          <button class="tab-btn" onclick="switchTab('quiz')">📝 Trắc nghiệm định nghĩa</button>
+        </div>
+
+        <!-- DẠNG 1: TỪ XÁO TRỘN (WORD SCRAMBLE) -->
+        <div id="scrambleGame" class="tab-content active">
+          <p class="game-instruction">Sắp xếp các chữ cái sau thành thuật ngữ Sinh học đúng với từ hiện tại:</p>
+          <div id="scrambledLetters" class="letters-box"></div>
+          <div class="answer-row">
+            <input type="text" id="scrambleInput" placeholder="Nhập từ vựng viết đúng..." autocomplete="off">
+            <button id="checkScrambleBtn" class="btn btn-check" onclick="checkScramble()">Kiểm tra</button>
+          </div>
+          <p id="scrambleFeedback" class="feedback-msg"></p>
+        </div>
+
+        <!-- DẠNG 2: TRẮC NGHIỆM ĐỊNH NGHĨA (MULTIPLE CHOICE) -->
+        <div id="quizGame" class="tab-content">
+          <p class="quiz-question-tag">Định nghĩa thuật ngữ:</p>
+          <div id="quizDefinition" class="quiz-def-box">Đang tải câu hỏi...</div>
+          <div id="quizOptions" class="options-grid"></div>
+          <p id="quizFeedback" class="feedback-msg"></p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>Biology Digital Learning Material &bull; THPT Chu Văn An - Thái Nguyên</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
